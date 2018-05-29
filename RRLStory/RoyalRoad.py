@@ -19,7 +19,7 @@ class Story:
     Represent the whole Stroy Object
     """
 
-    def __init__(self,url):
+    def __init__(self,url:str):
         self.url = url
         self.storyPage = Fetcher(url)
         if not self.storyPage.type == "Story":
@@ -59,7 +59,7 @@ class Fetcher:
     options.add_argument('--disable-gpu')
     LOGGER.setLevel(logging.WARNING)
     driver = webdriver.Chrome( path.dirname(path.realpath(__file__)) + "/chromedriver", options=options)
-    def __init__(self, url):
+    def __init__(self, url:str):
         parsedURL = urlparse(url)
         if not parsedURL.scheme:
             raise ValueError("Invalid URL Specified!!")
