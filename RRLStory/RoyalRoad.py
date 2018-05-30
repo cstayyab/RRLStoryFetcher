@@ -42,8 +42,7 @@ class Story:
         links = source.select("table#chapters td > a[href]")
         self.chaptersUrl = list()
         for a in links:
-            if a.text.strip().startswith("Chapter"):
-                self.chaptersUrl.append(urljoin(self.url, a['href']))
+            self.chaptersUrl.append(urljoin(self.url, a['href']))
                 
 #TODO: Add 'Chapter' Class
         
