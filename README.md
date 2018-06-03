@@ -1,7 +1,7 @@
 # RRLStoryFetcher
 This package allow the user to fetch Story or Chapters of astroy from Royal  Legends.
 
-##Sample Code
+## Sample Code
 This sample code fetches the content of a story "The Good Student" from Royal Road Legends and store it in a single HTML file.
 ```python
 import contextlib
