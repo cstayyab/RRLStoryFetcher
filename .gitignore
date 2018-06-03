@@ -1,3 +1,5 @@
 debug.log
 test.py
 __pycache__
+chrome_logs.log
+*.html

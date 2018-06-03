@@ -35,16 +35,35 @@ class Story:
         self.title = t if t else getMetaValue(self.storyPage.page, "twitter:title")
         self.description = getMetaValue(self.storyPage.page, "og:description")
         self.__get_chapters_list__()
-        print(self.chaptersUrl)
 
     def __get_chapters_list__(self):
         source = self.storyPage.page
         links = source.select("table#chapters td > a[href]")
         self.chaptersUrl = list()
         for a in links:
-            self.chaptersUrl.append(urljoin(self.url, a['href']))
+            self.chaptersUrl.append([a.text, urljoin(self.url, a['href'])])
                 
-#TODO: Add 'Chapter' Class
+class Chapter:
+    """
+    Represent a Chapter from the story
+    """
+    def __init__(self, url:str):
+        self.url = url
+        #print(url)
+        self.chapterPage = Fetcher(url)
+        if not self.chapterPage.type == "Chapter":
+            raise ValueError("Not a chapter page")
+        t = getMetaValue(self.chapterPage.page, "og:title")
+        self.title = t if t else getMetaValue(self.chapterPage.page, "twitter:title")
+        d = getMetaValue(self.chapterPage.page, "description")
+        self.description = d if d else getMetaValue(self.chapterPage.page, "twitter:description")
+        next = getLink(self.chapterPage.page, "next")
+        self.nextChapter = urljoin(self.url, next) if next else None
+        prev = getLink(self.chapterPage.page, "prev")
+        self.prevChapter = urljoin(self.url, prev) if prev else None
+        source = self.chapterPage.page
+        self.content = source.select(".chapter-inner.chapter-content")[0]
+        
         
         
 
@@ -52,13 +71,14 @@ class Fetcher:
     """
     The Webpage content fetcher class
     """
-    print("Fetching the content of a Webpage...", end='\t')
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    LOGGER.setLevel(logging.WARNING)
-    driver = webdriver.Chrome( path.dirname(path.realpath(__file__)) + "/chromedriver", options=options)
     def __init__(self, url:str):
+        #print("Fetching the content of a Webpage...", end='\t',flush=True)
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--log-level=3')
+        options.add_argument('--disable-gpu')
+        LOGGER.setLevel(logging.WARNING)
+        self.driver = webdriver.Chrome( path.dirname(path.realpath(__file__)) + "/chromedriver", options=options,service_log_path="chrome_logs.log")
         parsedURL = urlparse(url)
         if not parsedURL.scheme:
             raise ValueError("Invalid URL Specified!!")
@@ -66,25 +86,35 @@ class Fetcher:
             raise ValueError("Not a Royal Road Legends Page")
         self.driver.get(url)
         self.driver.implicitly_wait(5)
-        self.driver.find_element_by_css_selector("div#chapters_length > label > select option[value='-1']").click()
+        try:
+            self.driver.find_element_by_css_selector("div#chapters_length > label > select option[value='-1']").click()
+        except Exception:
+            pass
+        try:
+            WebDriverWait(self.driver,10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".chapter-inner.chapter-content")))
+        except:
+            pass
         self.contents = self.driver.page_source
         self.page = BeautifulSoup(self.contents, "lxml")
         #ogType =self.page.find("meta",  property="og:type")
         ogType = getMetaValue(self.page, "og:type")
         #ogTitle = self.page.find("meta",  property="og:title")
-        ogTitle = getMetaValue(self.page, "og:title")
+        #ogTitle = getMetaValue(self.page, "og:title")
         if ogType == "books.book":
             self.type = "Story"
-        elif ogType == "article" and ogTitle.startswith("Chapter "):
+        elif ogType == "article":   #TODO: Find a more specific condition to filter chapter
             self.type = "Chapter"
         else:
             raise ValueError("Not a supported Page Type. Must be a Story or Chapter")
         self.driver.close()
-        print("[Done]")
+        #print("[Done]")
 
 def getMetaValue(soup: BeautifulSoup, prop:str):
     temp = soup.find("meta",  property=prop)
     p =  temp if temp else soup.find("meta",  attrs={"name":prop})
     return p["content"] if p else ""
+def getLink(soup: BeautifulSoup, rel:str):
+    link =  soup.find("link",  attrs={"rel":rel})
+    return link["href"] if link else None
 
 
