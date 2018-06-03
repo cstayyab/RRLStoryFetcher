@@ -1,9 +1,4 @@
 # RRLStoryFetcher
-<<<<<<< HEAD
-This package allow the user to fetch Story or Chapters of a story from Royal Road Legends.
-=======
-This package allow the user to fetch Story or Chapters of a story from Royal  Legends.
->>>>>>> d5b900801753fcbd15eaf9e0ced6f7604838e30b
 
 ## Sample Code
 This sample code fetches the content of a story "The Good Student" from Royal Road Legends and store it in a single HTML file.
